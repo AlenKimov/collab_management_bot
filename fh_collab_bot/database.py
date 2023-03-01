@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import aiosqlite
 
 from definitions import DATABASES_DIR
@@ -213,4 +215,14 @@ async def get_interesting_projects(n: int = 10) -> dict[str: dict]:
     return projects_data
 
 
-
+async def are_projects_in_table(twitter_handles: Iterable[str]) -> dict[str: bool]:
+    query = """SELECT EXISTS(SELECT twitter_handle FROM project WHERE twitter_handle = ?)"""
+    answers = {}
+    async with aiosqlite.connect(DATABASE_FILEPATH) as db:
+        async with db.cursor() as cursor:
+            for handle in twitter_handles:
+                cursor = await cursor.execute(query, (handle, ))
+                answer = await cursor.fetchone()
+                answer = bool(answer[0])
+                answers.update({handle: answer})
+    return answers
