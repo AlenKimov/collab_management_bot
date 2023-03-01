@@ -1,6 +1,9 @@
 import re
 
 
+TWITTER_HANDLE_PATTERN = re.compile(r'^(?:.*?\btwitter\.com\/)?@?(\w{1,15})(?:[?\/,].*)?$')
+
+
 def to_twitter_handle(twitter: str) -> str or None:
     """
     Далее: Twitter handle == никнейм
@@ -19,7 +22,7 @@ def to_twitter_handle(twitter: str) -> str or None:
     :return: Twitter handle без @
     """
     if not twitter: return None
-    match = re.search(r'^(?:.*?\btwitter\.com\/)?@?(\w{1,15})(?:[?\/,].*)?$', twitter)
+    match = TWITTER_HANDLE_PATTERN.search(twitter)
     if match: return match.group(1)
     else: return None
 
