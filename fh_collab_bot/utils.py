@@ -28,7 +28,7 @@ def to_twitter_handle(twitter: str) -> str or None:
     else: return None
 
 
-def list_to_twitter_handlers(twitters: list[str]) -> set:
+def to_twitter_handles(twitters: list[str]) -> set:
     """
     Далее: Twitter handle == никнейм
 
