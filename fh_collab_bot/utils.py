@@ -1,7 +1,7 @@
 import re
 
 
-TWITTER_HANDLE_PATTERN = re.compile(r'^(?:.*?\btwitter\.com\/)?@?(\w{1,15})(?:[?\/,].*)?$')
+TWITTER_HANDLE_PATTERN = re.compile(r'^(?:.*?\btwitter\.com\/)?@?([a-zA-Z0-9_]{1,15})(?:[?\/,].*)?$')
 
 
 def to_twitter_handle(twitter: str) -> str or None:
