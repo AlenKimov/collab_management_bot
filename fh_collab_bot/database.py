@@ -159,6 +159,34 @@ async def get_project_data(twitter_handle: str) -> dict[str: dict]:
     return projects_data
 
 
+async def get_project_data_with_votes(twitter_handle: str) -> dict[str: dict]:
+    """Возвращает данные об определенном проекте"""
+    projects_data = {}
+    query = f"""
+    SELECT *, 
+    (SELECT COUNT(*)
+     FROM vote
+     WHERE vote.project_twitter_handle = project.twitter_handle AND vote.vote_type = 1) AS likes,
+    (SELECT COUNT(*)
+     FROM vote
+     WHERE vote.project_twitter_handle = project.twitter_handle AND vote.vote_type = 0) AS dislikes
+    FROM project
+    WHERE twitter_handle = ?
+    """
+    async with aiosqlite.connect(DATABASE_FILEPATH) as db:
+        async with db.cursor() as cursor:
+            result = await cursor.execute(query, (twitter_handle, ))
+            fieldnames = [f[0] for f in result.description]
+            values = await result.fetchone()
+            if values is not None:
+                values = list(values)
+                data = {}
+                for i in range(len(fieldnames)):
+                    data[fieldnames[i]] = values[i]
+                projects_data.update({data['twitter_handle']: data})
+    return projects_data
+
+
 async def get_projects_of_manager(manager_telegram_id: int) -> dict[str: dict]:
     projects_data = {}
     query = f"""
@@ -179,6 +207,56 @@ async def get_projects_of_manager(manager_telegram_id: int) -> dict[str: dict]:
                         data[fieldnames[i]] = values[i]
                     projects_data.update({data['twitter_handle']: data})
     return projects_data
+
+
+async def get_projects_of_manager_with_votes(manager_telegram_id: int) -> dict[str: dict]:
+    projects_data = {}
+    query = f"""
+    SELECT *, 
+    (SELECT COUNT(*)
+     FROM vote
+     WHERE vote.project_twitter_handle = project.twitter_handle AND vote.vote_type = 1) AS likes,
+    (SELECT COUNT(*)
+     FROM vote
+     WHERE vote.project_twitter_handle = project.twitter_handle AND vote.vote_type = 0) AS dislikes
+    FROM project
+    WHERE manager_telegram_id = ?
+    """
+    async with aiosqlite.connect(DATABASE_FILEPATH) as db:
+        async with db.cursor() as cursor:
+            result = await cursor.execute(query, (manager_telegram_id, ))
+            fieldnames = [f[0] for f in result.description]
+            values_list = await result.fetchall()
+            for values in values_list:
+                if values is not None:
+                    values = list(values)
+                    data = {}
+                    for i in range(len(fieldnames)):
+                        data[fieldnames[i]] = values[i]
+                    projects_data.update({data['twitter_handle']: data})
+    return projects_data
+
+
+async def get_vote(project_twitter_handle: str, manager_telegram_id: int) -> dict | None:
+    vote_data = None
+    query = """
+    SELECT *
+    FROM vote
+    WHERE manager_telegram_id = ? 
+        AND project_twitter_handle = ?
+    """
+    async with aiosqlite.connect(DATABASE_FILEPATH) as db:
+        async with db.cursor() as cursor:
+            result = await cursor.execute(query, (manager_telegram_id, project_twitter_handle))
+            fieldnames = [f[0] for f in result.description]
+            values = await result.fetchone()
+            if values is not None:
+                values = list(values)
+                data = {}
+                for i in range(len(fieldnames)):
+                    data[fieldnames[i]] = values[i]
+                vote_data = data
+    return vote_data
 
 
 async def get_interesting_projects(n: int = 10) -> dict[str: dict]:
