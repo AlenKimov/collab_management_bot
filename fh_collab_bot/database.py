@@ -90,14 +90,15 @@ async def update_manager_table(field_name: str, field_value, primary_key_value: 
 
 async def change_vote(manager_telegram_id: int, twitter_handle: str, vote_type: int):
     query = f"""
-        UPDATE vote
-        SET vote_type = ?
-        WHERE manager_telegram_id = ? AND twitter_handle = ?
+        INSERT INTO vote (manager_telegram_id, project_twitter_handle, vote_type) 
+        VALUES (?, ?, ?) 
+        ON CONFLICT DO UPDATE
+        SET vote_type = excluded.vote_type;
         """
     async with aiosqlite.connect(DATABASE_FILEPATH) as db:
         async with db.cursor() as cursor:
-            await cursor.execute(query, (vote_type, manager_telegram_id, twitter_handle))
-            await db.commit()
+            await cursor.execute(query, (manager_telegram_id, twitter_handle, vote_type))
+        await db.commit()
 
 
 async def delete_project(twitter_handle: str):
@@ -128,12 +129,12 @@ async def delete_vote(manager_telegram_id: int, twitter_handle: str):
     """Удаляет голос из таблицы голосов"""
     query = f"""
         DELETE FROM vote
-        WHERE manager_telegram_id = ? AND twitter_handle = ?
+        WHERE manager_telegram_id = ? AND project_twitter_handle = ?
         """
     async with aiosqlite.connect(DATABASE_FILEPATH) as db:
         async with db.cursor() as cursor:
             await cursor.execute(query, (manager_telegram_id, twitter_handle))
-            await db.commit()
+        await db.commit()
 
 
 async def get_project_data(twitter_handle: str) -> dict[str: dict]:
