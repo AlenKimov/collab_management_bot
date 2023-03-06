@@ -1,4 +1,5 @@
 from pprint import pprint
+
 # Third-party libraries
 from aiogram.types import CallbackQuery, Message
 import aiohttp
@@ -6,25 +7,27 @@ import aiohttp
 # Libraries of this project
 # -- base
 from fh_collab_bot.logger import logger
-# -- other
+# -- database
 from fh_collab_bot.database import get_projects_of_manager_with_votes
 from fh_collab_bot.database import get_project_data_with_votes
 from fh_collab_bot.database import are_projects_in_table
 from fh_collab_bot.database import update_project_manager_telegram_id
 from fh_collab_bot.database import change_vote, delete_vote
 from fh_collab_bot.aiots_plus_database import insert_project_with_its_tss_getting
+# -- other
 from fh_collab_bot.utils import to_twitter_handles
 from fh_collab_bot.view import project_data_representation
 # -- aiogram
-from fh_collab_bot.loader import dp, bot
+from fh_collab_bot.loader import dp
 from fh_collab_bot.keyboards.inline.project_management_buttons import create_project_management_inline_keyboard
 from fh_collab_bot.keyboards.inline.project_management_buttons import new_project_keyboard
-from keyboards.inline.callback_data import lead_project_cb, stop_leading_project_cb
+from keyboards.inline.callback_data import lead_project_cb
 from keyboards.inline.callback_data import vote_cb, delete_vote_cb
 
 
-@dp.message_handler(commands='my')
+@dp.message_handler(commands=['my', 'me'])
 async def cmd_projects_of_manager_message(message: Message):
+    logger.debug(f'Менеджер {message.from_user.id} запросил список своих проектов')
     projects_data = await get_projects_of_manager_with_votes(message.from_user.id)
 
     for project_data in projects_data.values():
@@ -74,22 +77,11 @@ async def delete_vote_cb_handler(query: CallbackQuery, callback_data: dict):
 async def lead_cb_handler(query: CallbackQuery, callback_data: dict):
     await query.answer(cache_time=1)
     project_twitter_handle = callback_data['project_twitter_handle']
-    await update_project_manager_telegram_id(project_twitter_handle, query.from_user.id)
-
-    project_data = await get_project_data_with_votes(project_twitter_handle)
-    project_data = project_data[project_twitter_handle]
-    project_info_message = project_data_representation(project_data)
-    project_management_keyboard = await create_project_management_inline_keyboard(query.from_user.id, project_data)
-    await query.message.edit_text(project_info_message, disable_web_page_preview=True,
-                                  reply_markup=project_management_keyboard)
-
-
-# TODO это хендлеры можно объединить в один: lead:want-to-lead(0 or 1):project-twitter-handle
-@dp.callback_query_handler(stop_leading_project_cb.filter())
-async def stop_leading_cb_handler(query: CallbackQuery, callback_data: dict):
-    await query.answer(cache_time=1)
-    project_twitter_handle = callback_data['project_twitter_handle']
-    await update_project_manager_telegram_id(project_twitter_handle, None)
+    want_to_lead = int(callback_data['want_to_lead'])
+    if want_to_lead == 1:
+        await update_project_manager_telegram_id(project_twitter_handle, query.from_user.id)
+    elif want_to_lead == 0:
+        await update_project_manager_telegram_id(project_twitter_handle, None)
 
     project_data = await get_project_data_with_votes(project_twitter_handle)
     project_data = project_data[project_twitter_handle]

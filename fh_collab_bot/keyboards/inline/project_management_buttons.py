@@ -2,7 +2,10 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Libraries of this project
 from fh_collab_bot.database import get_vote
-
+from fh_collab_bot.keyboards.inline.callback_data import add_and_lead_project_cb
+from fh_collab_bot.keyboards.inline.callback_data import lead_project_cb
+from fh_collab_bot.keyboards.inline.callback_data import delete_vote_cb
+from fh_collab_bot.keyboards.inline.callback_data import vote_cb
 
 new_project_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -30,12 +33,13 @@ async def create_project_management_inline_keyboard(
     #   Если есть и это этот менеджер, то сформировать кнопку для прекращения ведения проекта
     #   Если есть и это другой менеджер, то кнопки быть не должно
     if project_data['manager_telegram_id'] is None:
-        lead_button = InlineKeyboardButton(text='LEAD', callback_data=f'lead:{project_twitter_handle}')
+        lead_cb_data = lead_project_cb.new(want_to_lead=1, project_twitter_handle=project_twitter_handle)
+        lead_button = InlineKeyboardButton(text='LEAD', callback_data=lead_cb_data)
         keyboard.insert(lead_button)
     elif project_data['manager_telegram_id'] == manager_telegram_id:
-        stop_leading_button = InlineKeyboardButton(text='STOP LEADING',
-                                                   callback_data=f'stop-leading:{project_twitter_handle}')
-        keyboard.insert(stop_leading_button)
+        lead_cb_data = lead_project_cb.new(want_to_lead=0, project_twitter_handle=project_twitter_handle)
+        lead_button = InlineKeyboardButton(text='STOP LEADING', callback_data=lead_cb_data)
+        keyboard.insert(lead_button)
     else:
         pass
 
