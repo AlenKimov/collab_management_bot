@@ -2,7 +2,7 @@
 CREATE TABLE manager(
     telegram_id BIGINT   NOT NULL PRIMARY KEY,
     created_at  DATETIME NOT NULL DEFAULT (DATETIME('now', '+3 hour')),
-    is_admin    INTEGER  NOT NULL CHECK(vote_type BETWEEN 0 AND 1)
+    is_admin    INTEGER  NOT NULL CHECK(is_admin IN (0, 1))
 );
 
 -- Таблица проектов
@@ -20,7 +20,7 @@ CREATE TABLE project(
 CREATE TABLE IF NOT EXISTS vote(
     manager_telegram_id    REFERENCES manager(telegram_id),
     project_twitter_handle REFERENCES project(twitter_handle),
-    vote_type INTEGER CHECK(vote_type BETWEEN 0 AND 1),
+    vote_type INTEGER CHECK(vote_type IN (0, 1)),
     UNIQUE (manager_telegram_id, project_twitter_handle)
 );
 
