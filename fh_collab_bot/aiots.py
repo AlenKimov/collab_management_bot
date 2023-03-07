@@ -28,7 +28,7 @@ async def get_tss(session: aiohttp.ClientSession, twitter_handle: str) -> int | 
     if 'score' not in data:
         tss = None
     else:
-        tss = data['score']['value']
+        tss = int(data['score']['value'])
     return tss
 
 
