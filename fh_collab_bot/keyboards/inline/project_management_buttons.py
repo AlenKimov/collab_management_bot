@@ -2,10 +2,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Libraries of this project
 from fh_collab_bot.database import get_vote
-from fh_collab_bot.keyboards.inline.callback_data import add_and_lead_project_cb
-from fh_collab_bot.keyboards.inline.callback_data import lead_project_cb
-from fh_collab_bot.keyboards.inline.callback_data import delete_vote_cb
-from fh_collab_bot.keyboards.inline.callback_data import vote_cb
 
 new_project_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -33,12 +29,10 @@ async def create_project_management_inline_keyboard(
     #   Если есть и это этот менеджер, то сформировать кнопку для прекращения ведения проекта
     #   Если есть и это другой менеджер, то кнопки быть не должно
     if project_data['manager_telegram_id'] is None:
-        lead_cb_data = lead_project_cb.new(want_to_lead=1, project_twitter_handle=project_twitter_handle)
-        lead_button = InlineKeyboardButton(text='LEAD', callback_data=lead_cb_data)
+        lead_button = InlineKeyboardButton(text='LEAD', callback_data=f'lead:1:{project_twitter_handle}')
         keyboard.insert(lead_button)
     elif project_data['manager_telegram_id'] == manager_telegram_id:
-        lead_cb_data = lead_project_cb.new(want_to_lead=0, project_twitter_handle=project_twitter_handle)
-        lead_button = InlineKeyboardButton(text='STOP LEADING', callback_data=lead_cb_data)
+        lead_button = InlineKeyboardButton(text='STOP LEADING', callback_data=f'lead:0:{project_twitter_handle}')
         keyboard.insert(lead_button)
     else:
         pass
@@ -58,7 +52,10 @@ async def create_project_management_inline_keyboard(
         delete_vote_button = InlineKeyboardButton(text='✓ LIKE', callback_data=f'delete-vote:{project_twitter_handle}')
         keyboard.insert(delete_vote_button)
 
-    cancel_button = InlineKeyboardButton(text='Погодите-ка..', callback_data='cancel')
+    request_tss_button = InlineKeyboardButton(text='TSS', callback_data=f'request-tss:{project_twitter_handle}')
+    keyboard.insert(request_tss_button)
+
+    cancel_button = InlineKeyboardButton(text='Скрыть клавиатуру', callback_data='hide-keyboard')
     keyboard.insert(cancel_button)
 
     return keyboard
