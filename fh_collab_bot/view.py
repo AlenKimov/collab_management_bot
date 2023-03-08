@@ -4,7 +4,7 @@ def short_project_data_representation(project_data: dict) -> str:
         project_info_message_parts.append(f'({project_data["tss"]:04d})')
     project_info_message_parts.append(f'<a href="https://twitter.com/{project_data["twitter_handle"]}">{project_data["twitter_handle"]}</a>')
     if project_data['manager_telegram_id'] is not None:
-        project_info_message_parts.append(f'-> {project_data["manager_telegram_id"]}')
+        project_info_message_parts.append(f'⇨ {project_data["manager_telegram_id"]}')
     project_info_message = ' '.join(project_info_message_parts)
     return project_info_message
 
