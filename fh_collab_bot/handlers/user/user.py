@@ -18,12 +18,59 @@ from keyboards.inline.callback_data import request_tss_cb
 
 
 @dp.message_handler(commands=['my', 'me'])
-async def cmd_projects_of_manager_message(message: Message):
+async def cmd_my_projects(message: Message):
+    """Выводит список всех взятыых менеджером проектов, отсортированных по дате взятия"""
     db_session = DatabaseSession()
     manager: Manager = db_session.query(Manager).filter_by(telegram_id=message.from_user.id).scalar()
     projects: list[Project] = manager.projects
     for project in projects:
-        logger.debug(f'Командой {message.text} пользователь {message.from_user.username} запросил {project}')
+        logger.debug(f'Командой {message.text}'
+                     f' менеджер {message.from_user.id} (@{message.from_user.username})'
+                     f' запросил {project}')
+        project_management_keyboard = await create_project_management_inline_keyboard(message.from_user.id, project)
+        await message.answer(project.get_full_info(), disable_web_page_preview=True,
+                             reply_markup=project_management_keyboard)
+
+
+@dp.message_handler(commands=['best'])
+async def cmd_best_projects(message: Message):
+    """Выводит список из 10-ти никем не взятых проектов в порядке убывания лайков и в порядке убывания TSS"""
+    db_session = DatabaseSession()
+    projects: list[Project] = (
+        db_session.query(Project)
+        .filter_by(manager_telegram_id=None)
+        .order_by(Project.likes.desc())
+        .order_by(Project.tss.desc())
+        .limit(10)
+        .all()
+    )
+    for project in projects:
+        logger.debug(f'Командой {message.text}'
+                     f' менеджер {message.from_user.id} (@{message.from_user.username})'
+                     f' запросил {project}')
+        project_management_keyboard = await create_project_management_inline_keyboard(message.from_user.id, project)
+        await message.answer(project.get_full_info(), disable_web_page_preview=True,
+                             reply_markup=project_management_keyboard)
+
+
+@dp.message_handler(commands=['new'])
+async def cmd_best_projects(message: Message):
+    """Выводит список из 10-ти никем не взятых проектов без оценок,
+    отсортированных по новизне и в порядке убывания TSS"""
+    db_session = DatabaseSession()
+    projects: list[Project] = (
+        db_session.query(Project)
+        .filter_by(manager_telegram_id=None)
+        .filter_by(likes=0, dislikes=0)
+        .order_by(Project.created_at.desc())
+        .order_by(Project.tss.desc())
+        .limit(10)
+        .all()
+    )
+    for project in projects:
+        logger.debug(f'Командой {message.text}'
+                     f' менеджер {message.from_user.id} (@{message.from_user.username})'
+                     f' запросил {project}')
         project_management_keyboard = await create_project_management_inline_keyboard(message.from_user.id, project)
         await message.answer(project.get_full_info(), disable_web_page_preview=True,
                              reply_markup=project_management_keyboard)
