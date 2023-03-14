@@ -36,8 +36,7 @@ class Manager(Base):
 class Project(Base):
     __tablename__ = 'project'
 
-    # twitter_handle: Mapped[str] = mapped_column(String(15), primary_key=True, index=True, collation='NOCASE')
-    twitter_handle: Mapped[str] = mapped_column(String(15), primary_key=True, index=True)
+    twitter_handle: Mapped[str] = mapped_column(String(15, collation='NOCASE'), primary_key=True, index=True)
     created_at: Mapped[datetime] = mapped_column(default=func.DATETIME('now'), index=True)
     discord_url: Mapped[str | None]
     discord_admin_nickname: Mapped[str | None]
