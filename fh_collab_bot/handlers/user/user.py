@@ -107,10 +107,11 @@ async def delete_vote_cb_handler(query: CallbackQuery, callback_data: dict):
     with DatabaseSession() as db_session:
         vote: Vote = db_session.query(Vote).filter_by(manager_telegram_id=query.from_user.id,
                                                       project_twitter_handle=project_twitter_handle).scalar()
-        db_session.delete(vote)
-        db_session.commit()
-        project: Project = db_session.query(Project).filter_by(twitter_handle=project_twitter_handle).scalar()
-        await update_project_management_keyboard(query, project)
+        if vote is not None:
+            db_session.delete(vote)
+            db_session.commit()
+            project: Project = db_session.query(Project).filter_by(twitter_handle=project_twitter_handle).scalar()
+            await update_project_management_keyboard(query, project)
 
 
 @dp.callback_query_handler(lead_project_cb.filter())
