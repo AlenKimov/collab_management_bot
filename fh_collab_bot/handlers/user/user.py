@@ -4,7 +4,6 @@ import aiohttp
 # Libraries of this project
 from fh_collab_bot.logger import logger
 from fh_collab_bot.utils import to_twitter_handles
-from fh_collab_bot.view import full_project_representation
 from fh_collab_bot.aiots import get_tss
 # -- database
 from fh_collab_bot.models import Project, Manager, Vote
@@ -25,9 +24,8 @@ async def cmd_projects_of_manager_message(message: Message):
     projects: list[Project] = manager.projects
     for project in projects:
         logger.debug(f'Командой {message.text} пользователь {message.from_user.username} запросил {project}')
-        project_info_message = full_project_representation(project)
         project_management_keyboard = await create_project_management_inline_keyboard(message.from_user.id, project)
-        await message.answer(project_info_message, disable_web_page_preview=True,
+        await message.answer(project.get_full_info(), disable_web_page_preview=True,
                              reply_markup=project_management_keyboard)
 
 
@@ -37,9 +35,8 @@ async def cancel_cb_handler(query: CallbackQuery):
 
 
 async def update_project_management_keyboard(query: CallbackQuery, project: Project):
-    full_project_info_message = full_project_representation(project)
     project_management_keyboard = await create_project_management_inline_keyboard(query.from_user.id, project)
-    await query.message.edit_text(full_project_info_message, disable_web_page_preview=True,
+    await query.message.edit_text(project.get_full_info(), disable_web_page_preview=True,
                                   reply_markup=project_management_keyboard)
 
 
@@ -115,8 +112,7 @@ async def cmd_check_twitter(message: Message):
                 db_session.commit()
             else:
                 project: Project = db_session.query(Project).filter_by(twitter_handle=twitter_handle).scalar()
-            project_info_message = full_project_representation(project)
             logger.debug(project)
             project_management_keyboard = await create_project_management_inline_keyboard(message.from_user.id, project)
-            await message.answer(project_info_message, disable_web_page_preview=True,
+            await message.answer(project.get_full_info(), disable_web_page_preview=True,
                                  reply_markup=project_management_keyboard)

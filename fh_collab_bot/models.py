@@ -53,6 +53,27 @@ class Project(Base):
     def __repr__(self):
         return f'<Project(twitter_handle="{self.twitter_handle}", manager_telegram_id={self.manager_telegram_id})>'
 
+    def get_short_info(self):
+        project_info_message_parts = [f'[+{self.likes}/-{self.dislikes}]']
+        if self.tss is not None:
+            project_info_message_parts.append(f'({self.tss:04d})')
+        project_info_message_parts.append(
+            f'<a href="https://twitter.com/{self.twitter_handle}">{self.twitter_handle}</a>')
+        if self.manager_telegram_id is not None:
+            project_info_message_parts.append(f'⇨ {self.manager_telegram_id}')
+        project_info_message = ' '.join(project_info_message_parts)
+        return project_info_message
+
+    def get_full_info(self):
+        project_info_message_parts = [self.get_short_info()]
+        if self.discord_url is not None or self.discord_admin_nickname is not None:
+            if self.discord_url is not None:
+                project_info_message_parts.append(f'Discord: {self.discord_url}')
+            if self.discord_admin_nickname is not None:
+                project_info_message_parts.append(f' | {self.discord_admin_nickname}')
+        project_info_message = '\n'.join(project_info_message_parts)
+        return project_info_message
+
 
 class Vote(Base):
     __tablename__ = 'vote'
