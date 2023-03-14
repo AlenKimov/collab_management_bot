@@ -70,7 +70,7 @@ async def cmd_best_projects(message: Message):
         for project in projects:
             logger.debug(f'Командой {message.text}'
                          f' менеджер {message.from_user.id} (@{message.from_user.username})'
-                         f' запросил {project}')
+                         f' запросил \'{project}\'')
             project_management_keyboard = await create_project_management_inline_keyboard(message.from_user.id, project)
             await message.answer(project.get_full_info(), disable_web_page_preview=True,
                                  reply_markup=project_management_keyboard)
@@ -92,6 +92,9 @@ async def vote_cb_handler(query: CallbackQuery, callback_data: dict):
     await query.answer(cache_time=1)
     project_twitter_handle = callback_data['project_twitter_handle']
     vote_type = int(callback_data['vote_type'])
+    logger.debug(f'Менеджер {query.from_user.id} (@{query.from_user.username})'
+                 f' ставит оценку {vote_type}'
+                 f' проекту \'{project_twitter_handle}\'')
     with DatabaseSession() as db_session:
         db_session.merge(Vote(manager_telegram_id=query.from_user.id, project_twitter_handle=project_twitter_handle,
                               vote_type=vote_type))
@@ -104,6 +107,8 @@ async def vote_cb_handler(query: CallbackQuery, callback_data: dict):
 async def delete_vote_cb_handler(query: CallbackQuery, callback_data: dict):
     await query.answer(cache_time=1)
     project_twitter_handle = callback_data['project_twitter_handle']
+    logger.debug(f'Менеджер {query.from_user.id} (@{query.from_user.username})'
+                 f' снимает оценку проекта \'{project_twitter_handle}\'')
     with DatabaseSession() as db_session:
         vote: Vote = db_session.query(Vote).filter_by(manager_telegram_id=query.from_user.id,
                                                       project_twitter_handle=project_twitter_handle).scalar()
@@ -134,6 +139,8 @@ async def lead_cb_handler(query: CallbackQuery, callback_data: dict):
 async def request_tss_cb_handler(query: CallbackQuery, callback_data: dict):
     await query.answer(cache_time=60)
     project_twitter_handle = callback_data['project_twitter_handle']
+    logger.debug(f'Менеджер {query.from_user.id} (@{query.from_user.username})'
+                 f' запросил TSS проекта \'{project_twitter_handle}\'')
     with DatabaseSession() as db_session:
         project: Project = db_session.query(Project).filter_by(twitter_handle=project_twitter_handle).scalar()
         async with aiohttp.ClientSession() as session:
@@ -148,7 +155,7 @@ async def request_tss_cb_handler(query: CallbackQuery, callback_data: dict):
 async def cmd_check_twitter(message: Message):
     twitter_handles = to_twitter_handles(message.text.split('\n'))
     logger.debug(f'Менеджер {message.from_user.id} (@{message.from_user.username})'
-                 f' внес следующие проекты: {twitter_handles}')
+                 f' запросил следующие проекты: {twitter_handles}')
     with DatabaseSession() as db_session:
         async with aiohttp.ClientSession() as session:
             for twitter_handle in twitter_handles:
@@ -157,6 +164,7 @@ async def cmd_check_twitter(message: Message):
                 ).scalar()
                 if not is_in_table:
                     tss = await get_tss(session, twitter_handle)
+                    logger.debug(f'Новый проект: {twitter_handles}. Его TSS: {tss}')
                     project = Project(twitter_handle=twitter_handle, tss=tss)
                     db_session.add(project)
                     db_session.commit()
