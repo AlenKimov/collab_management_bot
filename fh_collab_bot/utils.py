@@ -6,9 +6,7 @@ TWITTER_HANDLE_PATTERN = re.compile(r'^(?:.*?\btwitter\.com\/)?@?([a-zA-Z0-9_]{1
 
 def to_twitter_handle(twitter: str) -> str or None:
     """
-    Далее: Twitter handle == никнейм
-
-    Длина никнейма не может быть более 15 символов
+    Длина Twitter handle не может превышать 15 символов
 
     На вход могут поступить строки следующего вида:
     - https://twitter.com/elonmusk
@@ -18,7 +16,7 @@ def to_twitter_handle(twitter: str) -> str or None:
     - @elonmusk
     - elonmusk
 
-    :param twitter: Предполагаемый Twitter аккаунт
+    :param twitter: Ссылка на Twitter аккаунт или Twitter handle
     :return: Twitter handle без @
     """
     if not twitter: return None
@@ -30,12 +28,10 @@ def to_twitter_handle(twitter: str) -> str or None:
 
 def to_twitter_handles(twitters: list[str]) -> set:
     """
-    Далее: Twitter handle == никнейм
-
     Дополнительно убирает на дубликаты
 
-    :param twitters: Список предполагаемых Twitter аккаунтов
-    :return: список никнеймов без @
+    :param twitters: Список ссылок на Twitter аккауны или список Twitter handle-ов
+    :return: Список Twitter handle-ов без @
     """
     twitter_handles = set()
     for twitter in twitters:
