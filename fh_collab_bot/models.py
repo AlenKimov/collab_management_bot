@@ -2,8 +2,9 @@ from datetime import datetime
 
 from sqlalchemy import ForeignKey, String, BigInteger
 from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, WriteOnlyMapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import PrimaryKeyConstraint, CheckConstraint
@@ -18,19 +19,43 @@ class Manager(Base):
     __tablename__ = 'manager'
 
     telegram_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    telegram_handle: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(default=func.DATETIME('now'))
     is_admin: Mapped[bool] = mapped_column(default=False)
 
-    projects: Mapped[list['Project']] = relationship(back_populates='manager')
+    projects: WriteOnlyMapped[list['Project']] = relationship(back_populates='manager', order_by='Project.tss')
 
-    votes: Mapped[list['Vote']] = relationship(back_populates='manager', cascade='all, delete')
+    votes: WriteOnlyMapped[list['Vote']] = relationship(back_populates='manager', cascade='all, delete')
 
     # __table_args__ = (
     #     CheckConstraint("is_admin IN (0, 1)"),
     # )
 
+    # def get_vote(self, project_twitter_handle: str) -> None or 'Vote':
+    #     for vote in self.votes:
+    #         if vote.project_twitter_handle == project_twitter_handle:
+    #             return vote
+
     def __repr__(self):
         return f'<Manager(telegram_id={self.telegram_id}, is_admin={self.is_admin})>'
+
+    def get_short_info(self):
+        if self.telegram_handle is not None:
+            return f'@{self.telegram_handle}'
+        else:
+            return str(self.telegram_id)
+
+    def get_full_info(self):
+        parts = []
+        if self.is_admin:
+            role = 'Admin'
+        else:
+            role = 'Manager'
+        parts.append(f'[{role}]')
+        parts.append(str(self.telegram_id))
+        if self.telegram_handle is not None:
+            parts.append(f'(@{self.telegram_handle})')
+        return ' '.join(parts)
 
 
 class Project(Base):
@@ -47,31 +72,39 @@ class Project(Base):
     manager_telegram_id = mapped_column(ForeignKey('manager.telegram_id'))
     manager: Mapped['Manager'] = relationship(back_populates='projects')
 
-    votes: Mapped[list['Vote']] = relationship(back_populates='project', cascade='all, delete')
+    votes: WriteOnlyMapped[list['Vote']] = relationship(back_populates='project', cascade='all, delete')
 
     def __repr__(self):
         return f'<Project(twitter_handle="{self.twitter_handle}", manager_telegram_id={self.manager_telegram_id})>'
 
     def get_short_info(self):
-        project_info_message_parts = [f'[+{self.likes}/-{self.dislikes}]']
+        parts = []
+
+        delta = datetime.utcnow() - self.created_at
+        if self.manager_telegram_id is None and self.likes == 0 and self.dislikes == 0 and delta.seconds < 300:
+            parts.append('[NEW!]')
+        else:
+            parts.append(f'[+{self.likes}/-{self.dislikes}]')
+
         if self.tss is not None:
-            project_info_message_parts.append(f'({self.tss:04d})')
-        project_info_message_parts.append(
-            f'<a href="https://twitter.com/{self.twitter_handle}">{self.twitter_handle}</a>')
+            parts.append(f'({self.tss:04d})')
+
+        parts.append(f'<a href="https://twitter.com/{self.twitter_handle}">{self.twitter_handle}</a>')
+
         if self.manager_telegram_id is not None:
-            project_info_message_parts.append(f'⇨ {self.manager_telegram_id}')
-        project_info_message = ' '.join(project_info_message_parts)
-        return project_info_message
+            # parts.append(f'⇨ {self.manager.get_short_info()}')
+            parts.append(f'⇨ {self.manager_telegram_id}')
+
+        return ' '.join(parts)
 
     def get_full_info(self):
-        project_info_message_parts = [self.get_short_info()]
+        parts = [self.get_short_info()]
         if self.discord_url is not None or self.discord_admin_nickname is not None:
             if self.discord_url is not None:
-                project_info_message_parts.append(f'Discord: {self.discord_url}')
+                parts.append(f'Discord: {self.discord_url}')
             if self.discord_admin_nickname is not None:
-                project_info_message_parts.append(f' | {self.discord_admin_nickname}')
-        project_info_message = '\n'.join(project_info_message_parts)
-        return project_info_message
+                parts.append(f' | {self.discord_admin_nickname}')
+        return '\n'.join(parts)
 
 
 class Vote(Base):
@@ -137,4 +170,4 @@ triggers = [
 ]
 
 for trigger in triggers:
-    event.listen(Base.metadata, "after_create", trigger)
+    event.listen(Base.metadata, 'after_create', trigger)
