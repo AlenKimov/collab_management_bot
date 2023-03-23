@@ -6,6 +6,7 @@ from definitions import DATABASES_DIR
 
 DATABASE_FILENAME = 'db.sqlite'
 DATABASE_FILEPATH = DATABASES_DIR / DATABASE_FILENAME
+DATABASE_URL = URL.create('sqlite+aiosqlite', database=str(DATABASE_FILEPATH))
 
-engine = create_async_engine(URL.create('sqlite+aiosqlite', database=str(DATABASE_FILEPATH)), echo=False)
+engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionMaker = async_sessionmaker(bind=engine)
