@@ -7,18 +7,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, exists
 
 # Libraries of this project
-from fh_collab_bot.logger import logger
-from fh_collab_bot.utils import to_twitter_handles
-from fh_collab_bot.aiots import get_tss
+from bot.logger import logger
+from bot.utils import to_twitter_handles
+from bot.aiots import get_tss
 # -- database
-from fh_collab_bot.models import Project, Manager, Vote
+from bot.models import Project, Manager, Vote
 # -- aiogram
-from fh_collab_bot.filters import ManagerFilter
-from fh_collab_bot.keyboards.inline.project_management import create_project_management_inline_keyboard
-from fh_collab_bot.keyboards.inline.callbacks import HideKeyboardCallback
-from fh_collab_bot.keyboards.inline.callbacks import LeadCallback
-from fh_collab_bot.keyboards.inline.callbacks import VoteCallback, DeleteVoteCallback
-from fh_collab_bot.keyboards.inline.callbacks import RequestTSSCallback
+from bot.filters import ManagerFilter
+from bot.keyboards.inline.project_management import create_project_management_inline_keyboard
+from bot.keyboards.inline.callbacks import HideKeyboardCallback
+from bot.keyboards.inline.callbacks import LeadCallback
+from bot.keyboards.inline.callbacks import VoteCallback, DeleteVoteCallback
+from bot.keyboards.inline.callbacks import RequestTSSCallback
 
 
 router = Router()

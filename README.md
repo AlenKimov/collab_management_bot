@@ -214,14 +214,15 @@ discord: https://discord.gg/uwAefKCj7X | keksich13#1242
 [NEW!] VitalikButerin
 ```
 
-## Ход реализации
-Язык: Python 3.11
-База данных: sqlite
-Библиотеки:
-	Телеграм: aiogram 3.0
-	Логирование: loguru
-	База данных: aiosqlite + SQLAlchemy 2.0 (ORM) + Alembic (Миграции)
+## Ход реализации: основная информация
+- Язык: Python 3.11
+- База данных: sqlite
+- Библиотеки:
+  - Телеграм: aiogram 3.0
+  - Логирование: loguru
+  - База данных: aiosqlite + SQLAlchemy 2.0 (ORM) + Alembic (Миграции)
 
+## Ход реализации: пункты
 - [ ] Переход на Poetry (`pyproject.toml`)
 - [ ] Докер контейнеризация
 - База данных

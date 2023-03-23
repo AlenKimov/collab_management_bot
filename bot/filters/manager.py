@@ -5,8 +5,8 @@ from aiogram.types import Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fh_collab_bot.models import Manager
-from fh_collab_bot.database import AsyncSessionMaker
+from bot.models import Manager
+from bot.database import AsyncSessionMaker
 
 
 manager_ids = []

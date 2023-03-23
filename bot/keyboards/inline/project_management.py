@@ -5,12 +5,12 @@ from sqlalchemy import select
 
 # Libraries of this project
 # -- database
-from fh_collab_bot.models import Project, Vote
+from bot.models import Project, Vote
 # -- aiogram
-from fh_collab_bot.keyboards.inline.callbacks import HideKeyboardCallback
-from fh_collab_bot.keyboards.inline.callbacks import LeadCallback
-from fh_collab_bot.keyboards.inline.callbacks import VoteCallback, DeleteVoteCallback
-from fh_collab_bot.keyboards.inline.callbacks import RequestTSSCallback
+from bot.keyboards.inline.callbacks import HideKeyboardCallback
+from bot.keyboards.inline.callbacks import LeadCallback
+from bot.keyboards.inline.callbacks import VoteCallback, DeleteVoteCallback
+from bot.keyboards.inline.callbacks import RequestTSSCallback
 
 
 async def create_project_management_inline_keyboard(

@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fh_collab_bot.models import Manager
+from bot.models import Manager
 
 router = Router()
 

@@ -5,13 +5,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Libraries of this project
-from fh_collab_bot.logger import logger
-from fh_collab_bot.utils import to_twitter_handles
+from bot.logger import logger
+from bot.utils import to_twitter_handles
 # -- database
-from fh_collab_bot.models import Project, Manager
+from bot.models import Project, Manager
 # -- aiogram
-from fh_collab_bot.filters import AdminFilter, load_manager_ids
-from fh_collab_bot.handlers.manager import MANAGER_COMMANDS_HELP_MESSAGE
+from bot.filters import AdminFilter, load_manager_ids
+from bot.handlers.manager import MANAGER_COMMANDS_HELP_MESSAGE
 
 
 router = Router()
