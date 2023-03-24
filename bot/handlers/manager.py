@@ -28,10 +28,10 @@ router.message.filter(ManagerFilter())
 MANAGER_COMMANDS_HELP_MESSAGE = """
 /my — выводит список всех взятых менеджером проектов, 
 отсортированных по дате взятия.
-/best — выводит список из 10-ти никем не взятых проектов 
+/best — выводит список из 5-ти никем не взятых проектов 
 в порядке убывания лайков и в порядке убывания TSS. 
 Не выводит проекты, добавленные менее 5 минут назад.
-/new — выводит список из 10-ти никем не взятых проектов 
+/new — выводит список из 5-ти никем не взятых проектов 
 без оценок, отсортированных по новизне и в порядке убывания TSS. 
 Не выводит проекты, добавленные менее 5 минут назад.
 /set_username — заносит Telegram Handle менеджера в базу. 
@@ -91,7 +91,7 @@ async def cmd_best_projects(message: Message, session: AsyncSession):
         .filter(Project.created_at < five_minutes_ago)
         .order_by(Project.likes.desc())
         .order_by(Project.tss.desc())
-        .limit(10)
+        .limit(5)
     )
     async for project in await session.stream_scalars(best_projects_query):
         project_management_keyboard = await create_project_management_inline_keyboard(
@@ -122,7 +122,7 @@ async def cmd_best_projects(message: Message, session: AsyncSession):
         .filter(Project.created_at < five_minutes_ago)
         .order_by(Project.created_at.desc())
         .order_by(Project.tss.desc())
-        .limit(10)
+        .limit(5)
     )
     async for project in await session.stream_scalars(best_projects_query):
         project_management_keyboard = await create_project_management_inline_keyboard(
