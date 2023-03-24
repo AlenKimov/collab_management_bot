@@ -247,10 +247,11 @@ async def cmd_check_twitter(message: Message, session: AsyncSession):
                 logger.debug(f'Новый проект: {twitter_handle}. Его TSS: {tss}')
                 project = Project(twitter_handle=twitter_handle, tss=tss)
                 session.add(project)
-                await session.commit()
             else:
                 project: Project = await session.scalar(project_query)
             project_management_keyboard = await create_project_management_inline_keyboard(
                 session, message.from_user.id, project)
             await message.answer(project.get_full_info(), disable_web_page_preview=True,
                                  reply_markup=project_management_keyboard)
+
+    await session.commit()
