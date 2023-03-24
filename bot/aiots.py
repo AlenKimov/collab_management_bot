@@ -17,9 +17,8 @@ async def _get_tweetscout_data(session: aiohttp.ClientSession, twitter_handle: s
         async with session.get(url, params=querystring) as response:
             try:
                 return await response.json()
-            except ContentTypeError as exception:
-                logger.exception(exception)
-                logger.error(await response.text())
+            except ContentTypeError:
+                logger.error(f'Не удалось запросить данные проекта: {twitter_handle}')
                 return {}
 
 
