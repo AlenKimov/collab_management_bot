@@ -4,14 +4,12 @@ from aiogram import Router
 from aiogram.types import CallbackQuery, Message
 from aiogram.filters import Command
 from aiogram import F
-import aiohttp
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, exists
 
 # Libraries of this project
 from bot.logger import logger
 from bot.utils import to_twitter_handles
-from bot.aiots import get_tss
 # -- database
 from bot.models import Project, Manager, Vote
 # -- aiogram
@@ -220,13 +218,15 @@ async def request_tss_cb_handler(callback: CallbackQuery, callback_data: Request
 
     project_query = select(Project).filter_by(twitter_handle=callback_data.project_twitter_handle)
     project: Project = await session.scalar(project_query)
-    async with aiohttp.ClientSession() as aiohttp_session:
-        new_tss = await get_tss(aiohttp_session, callback_data.project_twitter_handle)
-    if project.tss != new_tss:
-        project.tss = new_tss
+
+    old_tss = project.tss
+    await project.refresh_tss()
+
+    if old_tss != project.tss:
         await update_project_management_keyboard(session, callback, project)
-        await session.commit()
-    await callback.answer(cache_time=60)
+
+    await callback.answer(cache_time=3)
+    await session.commit()
 
 
 @router.message(F.text)
@@ -237,21 +237,19 @@ async def cmd_check_twitter(message: Message, session: AsyncSession):
     info_message = f'{manager.get_full_info()} запросил следующие проекты: {", ".join(twitter_handles)}'
     logger.info(info_message)
 
-    async with aiohttp.ClientSession() as aiohttp_session:
-        for twitter_handle in twitter_handles:
-            project_query = select(Project).filter_by(twitter_handle=twitter_handle)
-            project_exists_query = exists(project_query).select()
-            is_in_table = await session.scalar(project_exists_query)
-            if not is_in_table:
-                tss = await get_tss(aiohttp_session, twitter_handle)
-                logger.debug(f'Новый проект: {twitter_handle}. Его TSS: {tss}')
-                project = Project(twitter_handle=twitter_handle, tss=tss)
-                session.add(project)
-            else:
-                project: Project = await session.scalar(project_query)
-            project_management_keyboard = await create_project_management_inline_keyboard(
-                session, message.from_user.id, project)
-            await message.answer(project.get_full_info(), disable_web_page_preview=True,
-                                 reply_markup=project_management_keyboard)
-
+    for twitter_handle in twitter_handles:
+        project_query = select(Project).filter_by(twitter_handle=twitter_handle)
+        project_exists_query = exists(project_query).select()
+        is_in_table = await session.scalar(project_exists_query)
+        if not is_in_table:
+            project = Project(twitter_handle=twitter_handle)
+            await project.refresh_tss()
+            session.add(project)
+            logger.info(f'Новый проект: {twitter_handle}. Его TSS: {project.tss}')
+        else:
+            project: Project = await session.scalar(project_query)
+        project_management_keyboard = await create_project_management_inline_keyboard(
+            session, message.from_user.id, project)
+        await message.answer(project.get_full_info(), disable_web_page_preview=True,
+                             reply_markup=project_management_keyboard)
     await session.commit()

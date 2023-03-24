@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import ForeignKey, String, BigInteger
 from sqlalchemy import func
@@ -8,6 +8,10 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import PrimaryKeyConstraint, CheckConstraint
 from sqlalchemy import DDL, event
+from aiohttp import ClientSession
+
+from bot.logger import logger
+from bot.aiots import get_tss
 
 
 class Base(DeclarativeBase):
@@ -53,6 +57,7 @@ class Project(Base):
 
     twitter_handle: Mapped[str] = mapped_column(String(15, collation='NOCASE'), primary_key=True, index=True)
     created_at: Mapped[datetime] = mapped_column(default=func.DATETIME('now'), index=True)
+    tss_requested_at: Mapped[datetime | None]
     tss: Mapped[int | None]
     likes: Mapped[int] = mapped_column(default=0)
     dislikes: Mapped[int] = mapped_column(default=0)
@@ -88,6 +93,17 @@ class Project(Base):
         parts = [self.get_short_info()]
         parts.append('Проект был добавлен: ' + self.created_at.strftime("%Y-%m-%d %H:%M:%S"))
         return '\n'.join(parts)
+
+    async def refresh_tss(self):
+        now = datetime.utcnow()
+        if self.tss_requested_at is None or now > self.tss_requested_at + timedelta(minutes=2):
+            async with ClientSession() as aiohttp_session:
+                new_tss = await get_tss(aiohttp_session, self.twitter_handle)
+            self.tss = new_tss
+            self.tss_requested_at = datetime.utcnow()
+        else:
+            seconds = ((self.tss_requested_at + timedelta(minutes=2)) - now).seconds
+            logger.warning(f'TSS нельзя запрашивать еще {seconds} секунд!')
 
 
 class Vote(Base):
@@ -150,6 +166,16 @@ triggers = [
             WHERE twitter_handle = OLD.project_twitter_handle;
         END;
         """),
+    # DDL("""
+    #     CREATE TRIGGER update_project_tss_requested_at_after_tss_updating
+    #     AFTER UPDATE ON project
+    #     WHEN OLD.tss != NEW.tss OR OLD.tss IS NULL AND NEW.tss IS NOT NULL
+    #     BEGIN
+    #         UPDATE project
+    #         SET tss_requested_at = DATETIME("NOW")
+    #         WHERE twitter_handle = OLD.twitter_handle;
+    #     END;
+    #     """),
 ]
 
 for trigger in triggers:
