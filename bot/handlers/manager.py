@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from aiogram import Router
 from aiogram.types import CallbackQuery, Message
 from aiogram.filters import Command
@@ -72,15 +74,22 @@ async def cmd_my_projects(message: Message, session: AsyncSession):
 @router.message(Command('best'))
 async def cmd_best_projects(message: Message, session: AsyncSession):
     """Выводит список из 10-ти никем не взятых проектов
-    в порядке убывания лайков и в порядке убывания TSS"""
+    в порядке убывания лайков и в порядке убывания TSS
+
+    Не выводит проекты, добавленные менее 5 минут назад.
+    """
     manager: Manager = await session.scalar(select(Manager).filter_by(telegram_id=message.from_user.id))
 
     info_message = f'{manager.get_full_info()} использовал команду {message.text}'
     logger.info(info_message)
 
+    now = datetime.utcnow()
+    five_minutes_ago = now - timedelta(minutes=5)
+
     best_projects_query = (
         select(Project)
         .filter_by(manager_telegram_id=None)
+        .filter(Project.created_at < five_minutes_ago)
         .order_by(Project.likes.desc())
         .order_by(Project.tss.desc())
         .limit(10)
@@ -95,16 +104,23 @@ async def cmd_best_projects(message: Message, session: AsyncSession):
 @router.message(Command('new'))
 async def cmd_best_projects(message: Message, session: AsyncSession):
     """Выводит список из 10-ти никем не взятых проектов без оценок,
-    отсортированных по новизне и в порядке убывания TSS"""
+    отсортированных по новизне и в порядке убывания TSS
+
+    Не выводит проекты, добавленные менее 5 минут назад.
+    """
     manager: Manager = await session.scalar(select(Manager).filter_by(telegram_id=message.from_user.id))
 
     info_message = f'{manager.get_full_info()} использовал команду {message.text}'
     logger.info(info_message)
 
+    now = datetime.utcnow()
+    five_minutes_ago = now - timedelta(minutes=5)
+
     best_projects_query = (
         select(Project)
         .filter_by(manager_telegram_id=None)
         .filter_by(likes=0, dislikes=0)
+        .filter(Project.created_at < five_minutes_ago)
         .order_by(Project.created_at.desc())
         .order_by(Project.tss.desc())
         .limit(10)
