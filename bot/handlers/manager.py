@@ -125,6 +125,7 @@ async def cmd_set_handle(message: Message, session: AsyncSession):
 
     manager.telegram_handle = message.from_user.username
     await session.commit()
+    await message.answer('Имя пользователя успешно установлено!')
 
 
 @router.callback_query(HideKeyboardCallback.filter())

@@ -2,11 +2,12 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 
-from handlers import admin, manager, user
-from config import config
-from ui_commands import set_ui_commands
-from middlewares import DbSessionMiddleware
-from database import AsyncSessionMaker
+from bot.logger import logger
+from bot.handlers import admin, manager, user
+from bot.config import config
+from bot.ui_commands import set_ui_commands
+from bot.middlewares import DbSessionMiddleware
+from bot.database import AsyncSessionMaker
 
 
 async def main():
@@ -25,4 +26,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.info('Bot stopped!')

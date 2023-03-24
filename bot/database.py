@@ -2,7 +2,7 @@ from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from definitions import DATABASES_DIR
+from bot.definitions import DATABASES_DIR
 
 DATABASE_FILENAME = 'db.sqlite'
 DATABASE_FILEPATH = DATABASES_DIR / DATABASE_FILENAME

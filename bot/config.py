@@ -1,6 +1,6 @@
 from pydantic import BaseSettings, SecretStr
 
-from definitions import DOT_ENV_FILEPATH
+from bot.definitions import DOT_ENV_FILEPATH
 
 
 class Settings(BaseSettings):

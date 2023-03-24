@@ -7,7 +7,7 @@ import sys
 from loguru import logger
 
 # Libraries of this project
-from definitions import LOG_DIR
+from bot.definitions import LOG_DIR
 
 
 DEBUG = True

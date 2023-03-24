@@ -5,7 +5,7 @@ import aiohttp
 from aiohttp.client_exceptions import ContentTypeError
 from asyncio_throttle import Throttler
 
-from logger import logger
+from bot.logger import logger
 
 throttler = Throttler(rate_limit=1, period=2)
 

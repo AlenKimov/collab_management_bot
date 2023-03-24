@@ -2,7 +2,6 @@ from datetime import datetime
 
 from sqlalchemy import ForeignKey, String, BigInteger
 from sqlalchemy import func
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped, WriteOnlyMapped
 from sqlalchemy.orm import mapped_column
@@ -26,15 +25,6 @@ class Manager(Base):
     projects: WriteOnlyMapped[list['Project']] = relationship(back_populates='manager', order_by='Project.tss')
 
     votes: WriteOnlyMapped[list['Vote']] = relationship(back_populates='manager', cascade='all, delete')
-
-    # __table_args__ = (
-    #     CheckConstraint("is_admin IN (0, 1)"),
-    # )
-
-    # def get_vote(self, project_twitter_handle: str) -> None or 'Vote':
-    #     for vote in self.votes:
-    #         if vote.project_twitter_handle == project_twitter_handle:
-    #             return vote
 
     def __repr__(self):
         return f'<Manager(telegram_id={self.telegram_id}, is_admin={self.is_admin})>'
@@ -63,8 +53,6 @@ class Project(Base):
 
     twitter_handle: Mapped[str] = mapped_column(String(15, collation='NOCASE'), primary_key=True, index=True)
     created_at: Mapped[datetime] = mapped_column(default=func.DATETIME('now'), index=True)
-    discord_url: Mapped[str | None]
-    discord_admin_nickname: Mapped[str | None]
     tss: Mapped[int | None]
     likes: Mapped[int] = mapped_column(default=0)
     dislikes: Mapped[int] = mapped_column(default=0)
@@ -92,19 +80,12 @@ class Project(Base):
         parts.append(f'<a href="https://twitter.com/{self.twitter_handle}">{self.twitter_handle}</a>')
 
         if self.manager_telegram_id is not None:
-            # parts.append(f'⇨ {self.manager.get_short_info()}')
-            parts.append(f'⇨ {self.manager_telegram_id}')
+            parts.append(f'⇨ {self.manager.get_short_info()}')
 
         return ' '.join(parts)
 
     def get_full_info(self):
-        parts = [self.get_short_info()]
-        if self.discord_url is not None or self.discord_admin_nickname is not None:
-            if self.discord_url is not None:
-                parts.append(f'Discord: {self.discord_url}')
-            if self.discord_admin_nickname is not None:
-                parts.append(f' | {self.discord_admin_nickname}')
-        return '\n'.join(parts)
+        return self.get_short_info()
 
 
 class Vote(Base):

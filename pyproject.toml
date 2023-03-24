@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "collab-management-bot"
+version = "0.1.0"
+description = ""
+authors = ["Alen <alen.kimov@gmail.com>"]
+readme = "README.md"
+packages = [{include = "collab_management_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aiogram = "3.0.0b7"
+asyncio-throttle = "^1.0.2"
+SQLAlchemy = "^2.0.6"
+aiohttp = "^3.8.4"
+python-dotenv = "^1.0.0"
+pydantic = "^1.10.7"
+loguru = "^0.6.0"
+aiosqlite = "^0.18.0"
+alembic = "^1.10.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
