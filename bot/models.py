@@ -85,7 +85,9 @@ class Project(Base):
         return ' '.join(parts)
 
     def get_full_info(self):
-        return self.get_short_info()
+        parts = [self.get_short_info()]
+        parts.append('Проект был добавлен: ' + self.created_at.strftime("%Y-%m-%d %H:%M:%S"))
+        return '\n'.join(parts)
 
 
 class Vote(Base):
