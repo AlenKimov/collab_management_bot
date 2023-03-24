@@ -87,6 +87,7 @@ async def cmd_best_projects(message: Message, session: AsyncSession):
     best_projects_query = (
         select(Project)
         .filter_by(manager_telegram_id=None)
+        .filter_by(dislikes=0)
         .filter(Project.created_at < five_minutes_ago)
         .order_by(Project.likes.desc())
         .order_by(Project.tss.desc())
