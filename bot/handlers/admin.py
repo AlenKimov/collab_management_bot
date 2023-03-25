@@ -104,7 +104,7 @@ async def cmd_add_manager(message: Message, session: AsyncSession, command: Comm
     logger.info(info_message)
 
     if command.args:
-        telegram_id = command.args.split()[0]
+        telegram_id = int(command.args.split()[0])
         manager: Manager = await session.scalar(select(Manager).filter_by(telegram_id=telegram_id))
         if not manager:
             manager = Manager(telegram_id=telegram_id)
