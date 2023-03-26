@@ -15,7 +15,7 @@ async def start_message(message: Message, session: AsyncSession):
     if admins_telegram_handles:
         with_at = [f'@{handle}' for handle in admins_telegram_handles]
         await message.answer(f'Твой Telegram ID: {html.code(str(message.from_user.id))}\n'
-                             f'Если ты считаешь, что достоин мной пользоваться, напиши одному из администраторов:\n'
+                             f'Чтобы стать менеджером, нужно, чтобы твой Telegram ID внес в базу один из администраторов:\n'
                              f'{", ".join(with_at)}')
     else:
         await message.answer(f'Твой Telegram ID: {message.from_user.id}')
