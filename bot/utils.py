@@ -20,7 +20,7 @@ def to_twitter_handle(twitter: str) -> str or None:
     :return: Twitter handle без @
     """
     if not twitter: return None
-    twitter = twitter.strip()
+    twitter = twitter.strip().lower()
     match = TWITTER_HANDLE_PATTERN.search(twitter)
     if match: return match.group(1)
     else: return None
