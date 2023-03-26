@@ -11,14 +11,18 @@ router = Router()
 
 @router.message(Command('help', 'start'))
 async def start_message(message: Message, session: AsyncSession):
-    admins_telegram_handles = await session.scalars(select(Manager.telegram_handle).filter_by(is_admin=True))
+    stmt = select(Manager.telegram_handle).filter_by(is_admin=True).filter(Manager.telegram_handle != None)
+    admins_telegram_handles = (await session.scalars(stmt)).fetchall()
     if admins_telegram_handles:
         with_at = [f'@{handle}' for handle in admins_telegram_handles]
         await message.answer(f'Твой Telegram ID: {html.code(str(message.from_user.id))}\n'
-                             f'Чтобы стать менеджером, нужно, чтобы твой Telegram ID внес в базу один из администраторов:\n'
+                             f'Чтобы стать менеджером, нужно, '
+                             f'чтобы твой Telegram ID внес в базу один из администраторов:\n'
                              f'{", ".join(with_at)}')
     else:
-        await message.answer(f'Твой Telegram ID: {message.from_user.id}')
+        await message.answer(f'Твой Telegram ID: {html.code(str(message.from_user.id))}\n'
+                             f'Чтобы стать менеджером, нужно, '
+                             f'чтобы твой Telegram ID внес в базу один из администраторов.')
 
 
 @router.message(Command('my', 'best', 'new'))
