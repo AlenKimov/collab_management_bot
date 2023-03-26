@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.models import Manager
-from bot.database import AsyncSessionMaker
+from bot.database import AsyncSessionmaker
 
 
 admin_ids = []
@@ -16,7 +16,7 @@ admin_ids = []
 async def load_admin_ids():
     global admin_ids
     admin_ids.clear()
-    async with AsyncSessionMaker() as session:
+    async with AsyncSessionmaker() as session:
         async for admin in await session.stream_scalars(select(Manager).filter_by(is_admin=True)):
             admin_ids.append(admin.telegram_id)
 

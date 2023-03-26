@@ -1,17 +1,15 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import ForeignKey, String, BigInteger
-from sqlalchemy import func
+from aiohttp import ClientSession
+from sqlalchemy import ForeignKey, String, BigInteger, Integer, SmallInteger
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped, WriteOnlyMapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import PrimaryKeyConstraint, CheckConstraint
-from sqlalchemy import DDL, event
-from aiohttp import ClientSession
 
-from bot.logger import logger
 from bot.aiots import get_tss
+from bot.logger import logger
 
 
 class Base(DeclarativeBase):
@@ -22,8 +20,8 @@ class Manager(Base):
     __tablename__ = 'manager'
 
     telegram_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    telegram_handle: Mapped[str | None]
-    created_at: Mapped[datetime] = mapped_column(default=func.DATETIME('now'))
+    telegram_handle: Mapped[str | None] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     is_admin: Mapped[bool] = mapped_column(default=False)
 
     projects: WriteOnlyMapped[list['Project']] = relationship(back_populates='manager', order_by='Project.tss')
@@ -55,12 +53,14 @@ class Manager(Base):
 class Project(Base):
     __tablename__ = 'project'
 
-    twitter_handle: Mapped[str] = mapped_column(String(15, collation='NOCASE'), primary_key=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(default=func.DATETIME('now'), index=True)
+    # twitter_handle: Mapped[str] = mapped_column(String(15, collation='NOCASE'), primary_key=True, index=True)
+    # TODO Сделать поле twitter_handle регистронезависимым (нечувствительным к регистру)
+    twitter_handle: Mapped[str] = mapped_column(String(15), primary_key=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, index=True)
     tss_requested_at: Mapped[datetime | None]
-    tss: Mapped[int | None]
-    likes: Mapped[int] = mapped_column(default=0)
-    dislikes: Mapped[int] = mapped_column(default=0)
+    tss: Mapped[int | None] = mapped_column(Integer)
+    likes: Mapped[int] = mapped_column(SmallInteger, default=0)
+    dislikes: Mapped[int] = mapped_column(SmallInteger, default=0)
 
     manager_telegram_id = mapped_column(ForeignKey('manager.telegram_id'))
     manager: Mapped['Manager'] = relationship(back_populates='projects')
@@ -123,60 +123,3 @@ class Vote(Base):
 
     def __repr__(self):
         return f'<Vote(project_twitter_handle="{self.project_twitter_handle}", manager_telegram_id={self.manager_telegram_id}), vote_type={self.vote_type}>'
-
-
-triggers = [
-    DDL("""
-        CREATE TRIGGER increment_project_likes_after_like_insert
-        AFTER INSERT ON vote
-        WHEN NEW.vote_type = 1
-        BEGIN
-            UPDATE project
-            SET likes = likes + 1
-            WHERE twitter_handle = NEW.project_twitter_handle;
-        END;
-        """),
-    DDL("""
-        CREATE TRIGGER increment_project_dislikes_after_dislike_insert
-        AFTER INSERT ON vote
-        WHEN NEW.vote_type = 0
-        BEGIN
-            UPDATE project
-            SET dislikes = dislikes + 1
-            WHERE twitter_handle = NEW.project_twitter_handle;
-        END;
-        """),
-    DDL("""
-        CREATE TRIGGER decrement_project_likes_after_like_delete
-        AFTER DELETE ON vote
-        WHEN OLD.vote_type = 1
-        BEGIN
-            UPDATE project
-            SET likes = likes - 1
-            WHERE twitter_handle = OLD.project_twitter_handle;
-        END;
-        """),
-    DDL("""
-        CREATE TRIGGER decrement_project_dislikes_after_dislike_delete
-        AFTER DELETE ON vote
-        WHEN OLD.vote_type = 0
-        BEGIN
-            UPDATE project
-            SET dislikes = dislikes - 1
-            WHERE twitter_handle = OLD.project_twitter_handle;
-        END;
-        """),
-    # DDL("""
-    #     CREATE TRIGGER update_project_tss_requested_at_after_tss_updating
-    #     AFTER UPDATE ON project
-    #     WHEN OLD.tss != NEW.tss OR OLD.tss IS NULL AND NEW.tss IS NOT NULL
-    #     BEGIN
-    #         UPDATE project
-    #         SET tss_requested_at = DATETIME("NOW")
-    #         WHERE twitter_handle = OLD.twitter_handle;
-    #     END;
-    #     """),
-]
-
-for trigger in triggers:
-    event.listen(Base.metadata, 'after_create', trigger)

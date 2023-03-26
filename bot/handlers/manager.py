@@ -90,7 +90,7 @@ async def cmd_best_projects(message: Message, session: AsyncSession):
         .filter_by(dislikes=0)
         .filter(Project.created_at < five_minutes_ago)
         .order_by(Project.likes.desc())
-        .order_by(Project.tss.desc())
+        .order_by(Project.tss.desc().nulls_last())
         .limit(5)
     )
     async for project in await session.stream_scalars(best_projects_query):
@@ -166,10 +166,10 @@ async def vote_cb_handler(callback: CallbackQuery, callback_data: VoteCallback, 
     await session.merge(Vote(manager_telegram_id=callback.from_user.id,
                              project_twitter_handle=callback_data.project_twitter_handle,
                              vote_type=callback_data.vote_type))
-    await session.commit()
     project_query = select(Project).filter_by(twitter_handle=callback_data.project_twitter_handle)
     project = await session.scalar(project_query)
     await update_project_management_keyboard(session, callback, project)
+    await session.commit()
     await callback.answer(cache_time=2)
 
 
@@ -185,11 +185,11 @@ async def delete_vote_cb_handler(callback: CallbackQuery, callback_data: DeleteV
     vote: Vote = await session.scalar(vote_query)
     if vote is not None:
         await session.delete(vote)
-        await session.commit()
         project_query = select(Project).filter_by(twitter_handle=callback_data.project_twitter_handle)
         project: Project = await session.scalar(project_query)
         await update_project_management_keyboard(session, callback, project)
     await callback.answer(cache_time=1)
+    await session.commit()
 
 
 @router.callback_query(LeadCallback.filter())
