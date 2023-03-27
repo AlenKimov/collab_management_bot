@@ -53,8 +53,6 @@ class Manager(Base):
 class Project(Base):
     __tablename__ = 'project'
 
-    # twitter_handle: Mapped[str] = mapped_column(String(15, collation='NOCASE'), primary_key=True, index=True)
-    # TODO Сделать поле twitter_handle регистронезависимым (нечувствительным к регистру)
     twitter_handle: Mapped[str] = mapped_column(String(15), primary_key=True, index=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, index=True)
     tss_requested_at: Mapped[datetime | None]
