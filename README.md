@@ -8,7 +8,7 @@
 4. [Скачайте](https://github.com/AlenKimov/rambler_autoreg/archive/refs/heads/main.zip) или склонируйте этот репозиторий.
 5. В файле `.env`:
 	1. Установите `BOT_TOKEN`, взятый из [BotFather](https://t.me/BotFather).
-	2. Установите `DB_URL` в формате `postgresql+psycopg://user:password@server/db`
+	2. Установите `DATABASE_URL` в формате `postgresql+psycopg://user:password@server/db`
 6. В папке проекта пропишите следующие команды:
 ```bash
 poetry upgrade
