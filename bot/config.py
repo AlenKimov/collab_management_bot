@@ -5,7 +5,7 @@ from bot.definitions import DOT_ENV_FILEPATH
 
 class Settings(BaseSettings):
     BOT_TOKEN: str
-    DATABASE_URL: str = 'postgresql+psycopg://postgres:admin@localhost/collab_management'
+    DATABASE_URL: str
 
     class Config:
         env_file = DOT_ENV_FILEPATH
