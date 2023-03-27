@@ -246,6 +246,7 @@ async def cmd_check_twitter(message: Message, session: AsyncSession):
             project = Project(twitter_handle=twitter_handle)
             await project.refresh_tss()
             session.add(project)
+            await session.commit()
             logger.info(f'Новый проект: {twitter_handle}. Его TSS: {project.tss}')
         else:
             project: Project = await session.scalar(project_query)
@@ -253,4 +254,5 @@ async def cmd_check_twitter(message: Message, session: AsyncSession):
             session, message.from_user.id, project)
         await message.answer(project.get_full_info(), disable_web_page_preview=True,
                              reply_markup=project_management_keyboard)
-    await session.commit()
+    if len(twitter_handles) > 1:
+        await message.reply(f'Запрос нескольких проектов завершен')

@@ -17,4 +17,4 @@ if sys.platform == "win32":
 
 
 engine = create_async_engine(config.DATABASE_URL, echo=False)
-AsyncSessionmaker = async_sessionmaker(bind=engine)
+AsyncSessionmaker = async_sessionmaker(bind=engine, expire_on_commit=False)
