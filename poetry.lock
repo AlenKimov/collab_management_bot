@@ -793,14 +793,14 @@ files = [
 
 [[package]]
 name = "psycopg-pool"
-version = "3.1.6"
+version = "3.1.7"
 description = "Connection Pool for Psycopg"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "psycopg-pool-3.1.6.tar.gz", hash = "sha256:f43e48b0a75afa7da34eff918af1caa1295a186f4ed9b94a633f5f02a304a284"},
-    {file = "psycopg_pool-3.1.6-py3-none-any.whl", hash = "sha256:cded11f9bae8bfa564d2edede571d5ef91fa9e2cba6ce705de9bc1aef98281bd"},
+    {file = "psycopg-pool-3.1.7.tar.gz", hash = "sha256:d02741dc48303495f4021900630442af87d6b1c3bfd1a3ece54cc11aa43d7dde"},
+    {file = "psycopg_pool-3.1.7-py3-none-any.whl", hash = "sha256:ca1f2c366b5910acd400e16e812912827c57836af638c1717ba495111d22073b"},
 ]
 
 [package.dependencies]
