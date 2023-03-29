@@ -11,7 +11,7 @@
 	2. Установите `DATABASE_URL` в формате `postgresql+psycopg://user:password@server/db`
 6. В папке проекта пропишите следующие команды:
 ```bash
-poetry upgrade
+poetry update
 alembic upgrade head
 ```
 7. [Добавьте администратора в бота](#добавление-администратора)
